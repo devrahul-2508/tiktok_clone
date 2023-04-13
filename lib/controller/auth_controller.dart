@@ -27,6 +27,7 @@ class AuthContoller {
 
         await Prefs.setEmail(Constants.userEmailKey, email);
         await Prefs.setUsername(Constants.userNameKey, name);
+        await Prefs.setUserId(Constants.userIdKey, cred.user!.uid);
         await Prefs.setLoggedInStatus(Constants.userLoggedInKey, true);
 
         return true;
@@ -50,6 +51,8 @@ class AuthContoller {
         print("Preferences saved");
         await Prefs.setEmail(Constants.userEmailKey, userData.email);
         await Prefs.setUsername(Constants.userNameKey, userData.name);
+        await Prefs.setUserId(Constants.userIdKey, userCred.user!.uid);
+
         await Prefs.setLoggedInStatus(Constants.userLoggedInKey, true);
 
         print(Prefs.getEmail(Constants.userEmailKey));

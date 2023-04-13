@@ -22,4 +22,9 @@ class Prefs {
       await _prefs.setBool(key, value!);
 
   static getLoggedInStatus(String key) => _prefs.getBool(key) ?? false;
+
+  static Future<bool> setUserId(String key, String value) async =>
+      await _prefs.setString(key, value);
+
+  static getUserId(String key) => _prefs.getString(key) ?? " ";
 }

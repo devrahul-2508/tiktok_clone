@@ -47,7 +47,7 @@ class Video {
     };
   }
 
-  factory Video.fromMap(
+  factory Video.fromFireStore(
         DocumentSnapshot<Map<String, dynamic>> snapshot,
 
   ) {
@@ -64,7 +64,7 @@ class Video {
       caption: data?['caption'] as String,
       videoUrl: data?['videoUrl'] as String,
       thumbnail: data?['thumbnail'] as String,
-      profilePhoto: data?['profilePhoto'] as String,
+      profilePhoto: data?['profilePhoto'],
     );
   }
 

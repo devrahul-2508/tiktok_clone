@@ -1,30 +1,34 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter/src/widgets/placeholder.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:tiktok_clone/common/constants.dart';
+import 'package:tiktok_clone/helper/preferences.dart';
 import 'package:tiktok_clone/widgets/circle_animation.dart';
 import 'package:tiktok_clone/widgets/video_player_item.dart';
 
-class VideoScreen extends StatelessWidget {
+import '../controller/add_video_controller.dart';
+import '../model/video.dart';
+
+class VideoScreen extends ConsumerWidget {
   const VideoScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final size = MediaQuery.of(context).size;
+    final videos = ref.watch(videoControllerProvider);
     return Scaffold(
       body: PageView.builder(
+          itemCount: videos.length,
           controller: PageController(initialPage: 0, viewportFraction: 1),
           scrollDirection: Axis.vertical,
           itemBuilder: (context, index) {
+            Video video = videos[index];
+            print(video.videoUrl);
             return Stack(
               children: [
-                // VideoPlayerItem(videoUrl: videoUrl),
-                Container(
-                  width: MediaQuery.of(context).size.width,
-                  height: MediaQuery.of(context).size.height,
-                  color: Colors.black,
-                ),
+                VideoPlayerItem(videoUrl: video.videoUrl),
                 buildBottomDetails(),
-
                 Positioned(
                   right: 0,
                   top: size.height * 0.3,
@@ -36,9 +40,61 @@ class VideoScreen extends StatelessWidget {
                       children: [
                         buildProfile(
                             "https://rollingstoneindia.com/wp-content/uploads/2020/02/weekend.jpg"),
-                        buildIcons(Icons.favorite, "33.3k"),
-                        buildIcons(Icons.comment, "15k"),
-                        buildIcons(Icons.reply, "1k"),
+                        Column(
+                          children: [
+                            InkWell(
+                              onTap: () {
+                                ref
+                                    .read(videoControllerProvider.notifier)
+                                    .likeVideo(video.id!);
+                              },
+                              child: Icon(
+                                Icons.favorite,
+                                color: (video.likes.contains(
+                                        Prefs.getUserId(Constants.userIdKey)))
+                                    ? Colors.red
+                                    : Colors.white,
+                                size: 40,
+                              ),
+                            ),
+                            Text(
+                              video.likes.length.toString(),
+                              style: TextStyle(color: Colors.white),
+                            )
+                          ],
+                        ),
+                        Column(
+                          children: [
+                            InkWell(
+                              onTap: () {},
+                              child: Icon(
+                                Icons.comment,
+                                color: Colors.white,
+                                size: 40,
+                              ),
+                            ),
+                            Text(
+                              video.commentCount.toString(),
+                              style: TextStyle(color: Colors.white),
+                            )
+                          ],
+                        ),
+                        Column(
+                          children: [
+                            InkWell(
+                              onTap: () {},
+                              child: Icon(
+                                Icons.reply,
+                                color: Colors.white,
+                                size: 40,
+                              ),
+                            ),
+                            Text(
+                              video.shareCount.toString(),
+                              style: TextStyle(color: Colors.white),
+                            )
+                          ],
+                        ),
                         CircleAnimation(
                             child: buildMusicAlbum(
                                 "https://rollingstoneindia.com/wp-content/uploads/2020/02/weekend.jpg"))

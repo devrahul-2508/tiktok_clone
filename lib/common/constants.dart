@@ -1,5 +1,4 @@
 import 'package:flutter/widgets.dart';
-import 'package:tiktok_clone/views/add_video_screen.dart';
 import 'package:tiktok_clone/views/video_screen.dart';
 
 class Constants {
@@ -7,6 +6,7 @@ class Constants {
   static String userNameKey = "USERNAMEKEY";
   static String userEmailKey = "USEREMAILKEY";
   static String userProfilePicKey = "USERPROFILEPICKEY";
+  static String userIdKey = "USERIDKEY";
 }
 
 const pages = [
