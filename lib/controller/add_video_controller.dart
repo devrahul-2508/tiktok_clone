@@ -154,7 +154,6 @@ class VideoController extends StateNotifier<List<Video>> {
   }
 
   Future likeVideo(String id) async {
-   
     DocumentSnapshot snapshot =
         await firestoreDb.collection("videos").doc(id).get();
 
@@ -165,21 +164,19 @@ class VideoController extends StateNotifier<List<Video>> {
     print(uid);
 
     if (video.likes.contains(uid)) {
-      await firestoreDb.collection("videos").doc(id).update({
-        "likes": FieldValue.arrayRemove([uid])
-      });
-
       video.likes.remove(uid);
 
       updateVideoLocally(video);
-    } else {
       await firestoreDb.collection("videos").doc(id).update({
-        "likes": FieldValue.arrayUnion([uid])
+        "likes": FieldValue.arrayRemove([uid])
       });
-
+    } else {
       video.likes.add(uid);
 
       updateVideoLocally(video);
+      await firestoreDb.collection("videos").doc(id).update({
+        "likes": FieldValue.arrayUnion([uid])
+      });
     }
   }
 }

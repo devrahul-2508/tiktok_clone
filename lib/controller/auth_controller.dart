@@ -43,9 +43,7 @@ class AuthContoller {
           .signInWithEmailAndPassword(email: email, password: password);
 
       final userData = await getUserData(userCred.user!.uid);
-      print(userData);
-      // print(userData!.email);
-      // print(userData.name);
+  
 
       if (userData != null) {
         print("Preferences saved");

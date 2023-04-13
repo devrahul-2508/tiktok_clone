@@ -9,7 +9,7 @@ class Constants {
   static String userIdKey = "USERIDKEY";
 }
 
-const pages = [
+final pages = [
   VideoScreen(),
   Text("Discover Screen"),
   Text("Video Screen"),

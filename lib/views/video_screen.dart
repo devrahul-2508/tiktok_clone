@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter/src/widgets/placeholder.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:tiktok_clone/common/common.dart';
 import 'package:tiktok_clone/common/constants.dart';
 import 'package:tiktok_clone/helper/preferences.dart';
 import 'package:tiktok_clone/widgets/circle_animation.dart';
@@ -11,12 +12,126 @@ import '../controller/add_video_controller.dart';
 import '../model/video.dart';
 
 class VideoScreen extends ConsumerWidget {
-  const VideoScreen({super.key});
+  VideoScreen({super.key});
+
+  final TextEditingController _commentController = TextEditingController();
+
+  Widget _buildMessageComposer(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 10),
+      color: Colors.white,
+      width: MediaQuery.of(context).size.width,
+      child: Row(children: [
+        Expanded(
+            child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 5),
+                child: TextField(
+                    controller: _commentController,
+                    style: TextStyle(color: Colors.white),
+                    decoration: InputDecoration(
+                        hintText: "Add a comment",
+                        hintStyle: TextStyle(color: Colors.grey),
+                        border:
+                            OutlineInputBorder(borderSide: BorderSide.none))))),
+        ButtonBar(
+          children: [
+            IconButton(
+              icon: const Icon(
+                Icons.send,
+                color: Colors.black,
+              ),
+              onPressed: () {},
+            ),
+          ],
+        )
+      ]),
+    );
+  }
+
+  Widget showCommentBottomSheet(BuildContext context) {
+    return Padding(
+      padding: MediaQuery.of(context).viewInsets,
+      child: DraggableScrollableSheet(
+          initialChildSize: 0.7,
+          maxChildSize: 1,
+          minChildSize: 0.5,
+          builder: (_, scrollController) {
+            return Container(
+              decoration: BoxDecoration(
+                  color: Color(0xffbf5f5f4),
+                  borderRadius:
+                      BorderRadius.vertical(top: Radius.circular(20))),
+              child: Column(
+                children: [
+                  Expanded(
+                    child: ListView.builder(
+                      controller: scrollController,
+                      itemCount: 25,
+                      itemBuilder: (context, int index) {
+                        return ListTile(
+                            leading: CircleAvatar(
+                              backgroundColor: Colors.black,
+                              backgroundImage: NetworkImage(
+                                  "https://rollingstoneindia.com/wp-content/uploads/2020/02/weekend.jpg"),
+                            ),
+                            title: Text(
+                              "madsj30",
+                              style: TextStyle(
+                                  fontSize: 10,
+                                  color: Colors.grey,
+                                  fontWeight: FontWeight.w700),
+                            ),
+                            subtitle: Row(
+                              children: [
+                                Text(
+                                  "comment description",
+                                  style: TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.black,
+                                      fontWeight: FontWeight.w500),
+                                ),
+                                SizedBox(
+                                  width: 5,
+                                ),
+                                Text(
+                                  "22h",
+                                  style: TextStyle(
+                                      fontSize: 14, color: Colors.grey),
+                                )
+                              ],
+                            ),
+                            trailing: Column(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                InkWell(
+                                  child: Icon(
+                                    Icons.favorite_border_outlined,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                                Text(
+                                  "8085",
+                                  style: TextStyle(
+                                      fontSize: 12, color: Colors.grey),
+                                )
+                              ],
+                            ));
+                      },
+                    ),
+                  ),
+                  _buildMessageComposer(context)
+                ],
+              ),
+            );
+          }),
+    );
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final size = MediaQuery.of(context).size;
     final videos = ref.watch(videoControllerProvider);
+
     return Scaffold(
       body: PageView.builder(
           itemCount: videos.length,
@@ -66,7 +181,14 @@ class VideoScreen extends ConsumerWidget {
                         Column(
                           children: [
                             InkWell(
-                              onTap: () {},
+                              onTap: () {
+                                showModalBottomSheet(
+                                    context: context,
+                                    isScrollControlled: true,
+                                    backgroundColor: Colors.transparent,
+                                    builder: (context) =>
+                                        showCommentBottomSheet(context));
+                              },
                               child: Icon(
                                 Icons.comment,
                                 color: Colors.white,
@@ -101,7 +223,7 @@ class VideoScreen extends ConsumerWidget {
                       ],
                     ),
                   ),
-                )
+                ),
               ],
             );
           }),
