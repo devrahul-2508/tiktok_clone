@@ -1,9 +1,11 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter/src/widgets/placeholder.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tiktok_clone/common/common.dart';
 import 'package:tiktok_clone/common/constants.dart';
+import 'package:tiktok_clone/controller/comment_controller.dart';
 import 'package:tiktok_clone/helper/preferences.dart';
 import 'package:tiktok_clone/widgets/circle_animation.dart';
 import 'package:tiktok_clone/widgets/video_player_item.dart';
@@ -15,8 +17,10 @@ class VideoScreen extends ConsumerWidget {
   VideoScreen({super.key});
 
   final TextEditingController _commentController = TextEditingController();
+  Stream<QuerySnapshot>? comments;
 
-  Widget _buildMessageComposer(BuildContext context) {
+  Widget _buildMessageComposer(
+      BuildContext context, WidgetRef ref, String videoId) {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 10),
       color: Colors.white,
@@ -27,7 +31,7 @@ class VideoScreen extends ConsumerWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 5),
                 child: TextField(
                     controller: _commentController,
-                    style: TextStyle(color: Colors.white),
+                    style: TextStyle(color: Colors.black),
                     decoration: InputDecoration(
                         hintText: "Add a comment",
                         hintStyle: TextStyle(color: Colors.grey),
@@ -40,7 +44,9 @@ class VideoScreen extends ConsumerWidget {
                 Icons.send,
                 color: Colors.black,
               ),
-              onPressed: () {},
+              onPressed: () {
+                sendComment(videoId, ref);
+              },
             ),
           ],
         )
@@ -48,7 +54,16 @@ class VideoScreen extends ConsumerWidget {
     );
   }
 
-  Widget showCommentBottomSheet(BuildContext context) {
+  sendComment(String videoId, WidgetRef ref) {
+    ref
+        .read(commentControllerProvider)
+        .addComment(videoId, _commentController.text);
+
+    _commentController.clear();
+  }
+
+  Widget showCommentBottomSheet(
+      BuildContext context, WidgetRef ref, String videoId) {
     return Padding(
       padding: MediaQuery.of(context).viewInsets,
       child: DraggableScrollableSheet(
@@ -63,63 +78,103 @@ class VideoScreen extends ConsumerWidget {
                       BorderRadius.vertical(top: Radius.circular(20))),
               child: Column(
                 children: [
-                  Expanded(
-                    child: ListView.builder(
-                      controller: scrollController,
-                      itemCount: 25,
-                      itemBuilder: (context, int index) {
-                        return ListTile(
-                            leading: CircleAvatar(
-                              backgroundColor: Colors.black,
-                              backgroundImage: NetworkImage(
-                                  "https://rollingstoneindia.com/wp-content/uploads/2020/02/weekend.jpg"),
-                            ),
-                            title: Text(
-                              "madsj30",
-                              style: TextStyle(
-                                  fontSize: 10,
-                                  color: Colors.grey,
-                                  fontWeight: FontWeight.w700),
-                            ),
-                            subtitle: Row(
-                              children: [
-                                Text(
-                                  "comment description",
-                                  style: TextStyle(
-                                      fontSize: 14,
-                                      color: Colors.black,
-                                      fontWeight: FontWeight.w500),
-                                ),
-                                SizedBox(
-                                  width: 5,
-                                ),
-                                Text(
-                                  "22h",
-                                  style: TextStyle(
-                                      fontSize: 14, color: Colors.grey),
-                                )
-                              ],
-                            ),
-                            trailing: Column(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                InkWell(
-                                  child: Icon(
-                                    Icons.favorite_border_outlined,
-                                    color: Colors.black,
-                                  ),
-                                ),
-                                Text(
-                                  "8085",
-                                  style: TextStyle(
-                                      fontSize: 12, color: Colors.grey),
-                                )
-                              ],
+                  StreamBuilder(
+                    stream: comments,
+                    builder: (context, snapshot) {
+                      return (snapshot.hasData)
+                          ? Expanded(
+                              child: ListView.builder(
+                                controller: scrollController,
+                                itemCount: snapshot.data!.docs.length,
+                                itemBuilder: (context, int index) {
+                                  return (snapshot.data!.docs.isNotEmpty)
+                                      ? ListTile(
+                                          leading: CircleAvatar(
+                                            backgroundColor: Colors.black,
+                                            backgroundImage: NetworkImage(
+                                                "https://rollingstoneindia.com/wp-content/uploads/2020/02/weekend.jpg"),
+                                          ),
+                                          title: Text(
+                                            snapshot.data!.docs[index]
+                                                ["username"],
+                                            style: TextStyle(
+                                                fontSize: 10,
+                                                color: Colors.grey,
+                                                fontWeight: FontWeight.w700),
+                                          ),
+                                          subtitle: Row(
+                                            children: [
+                                              Text(
+                                                snapshot.data!.docs[index]
+                                                    ["comment"],
+                                                style: TextStyle(
+                                                    fontSize: 14,
+                                                    color: Colors.black,
+                                                    fontWeight:
+                                                        FontWeight.w500),
+                                              ),
+                                              SizedBox(
+                                                width: 5,
+                                              ),
+                                              Text(
+                                                "22h",
+                                                style: TextStyle(
+                                                    fontSize: 14,
+                                                    color: Colors.grey),
+                                              )
+                                            ],
+                                          ),
+                                          trailing: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.center,
+                                            children: [
+                                              InkWell(
+                                                onTap: () => ref
+                                                    .read(
+                                                        commentControllerProvider)
+                                                    .likeComment(
+                                                        videoId,
+                                                        snapshot.data!
+                                                            .docs[index]["id"]),
+                                                child: (snapshot.data!
+                                                        .docs[index]["likes"]
+                                                        .contains(Prefs
+                                                            .getUserId(Constants
+                                                                .userIdKey)))
+                                                    ? Icon(
+                                                        Icons.favorite,
+                                                        color: Colors.red,
+                                                      )
+                                                    : Icon(
+                                                        Icons
+                                                            .favorite_border_outlined,
+                                                        color: Colors.black,
+                                                      ),
+                                              ),
+                                              Text(
+                                                snapshot.data!
+                                                    .docs[index]["likes"].length
+                                                    .toString(),
+                                                style: TextStyle(
+                                                    fontSize: 12,
+                                                    color: Colors.grey),
+                                              )
+                                            ],
+                                          ))
+                                      : Container(
+                                          child: Center(
+                                          child: Text("No comments till now"),
+                                        ));
+                                },
+                              ),
+                            )
+                          : Container(
+                              child: Center(
+                              child: Text("No comments till now"),
                             ));
-                      },
-                    ),
+                    },
                   ),
-                  _buildMessageComposer(context)
+                  _buildMessageComposer(context, ref, videoId)
                 ],
               ),
             );
@@ -182,12 +237,16 @@ class VideoScreen extends ConsumerWidget {
                           children: [
                             InkWell(
                               onTap: () {
+                                comments = ref
+                                    .watch(commentControllerProvider)
+                                    .getComments(video.id!);
                                 showModalBottomSheet(
                                     context: context,
                                     isScrollControlled: true,
                                     backgroundColor: Colors.transparent,
                                     builder: (context) =>
-                                        showCommentBottomSheet(context));
+                                        showCommentBottomSheet(
+                                            context, ref, video.id!));
                               },
                               child: Icon(
                                 Icons.comment,

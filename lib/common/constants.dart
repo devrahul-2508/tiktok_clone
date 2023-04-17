@@ -1,6 +1,8 @@
 import 'package:flutter/widgets.dart';
 import 'package:tiktok_clone/views/video_screen.dart';
 
+import '../views/search_screen.dart';
+
 class Constants {
   static String userLoggedInKey = "LOGGEDINKEY";
   static String userNameKey = "USERNAMEKEY";
@@ -11,7 +13,7 @@ class Constants {
 
 final pages = [
   VideoScreen(),
-  Text("Discover Screen"),
+  SearchScreen(),
   Text("Video Screen"),
   Text("Inbox Screen"),
   Text("Profile Screen"),

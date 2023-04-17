@@ -7,6 +7,7 @@ import 'package:flutter/src/widgets/placeholder.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tiktok_clone/common/common.dart';
 import 'package:tiktok_clone/controller/add_video_controller.dart';
+import 'package:tiktok_clone/views/home_screen.dart';
 import 'package:video_player/video_player.dart';
 
 class ConfirmScreen extends ConsumerStatefulWidget {
@@ -26,14 +27,18 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
   final songController = TextEditingController();
   final ValueNotifier progressValue = ValueNotifier(0.0);
 
-  addVideo() async {
+  addVideo(String videoUrl) async {
     await ref
         .read(videoControllerProvider.notifier)
-        .addVideo(widget.videoPath, captionController.text, songController.text)
+        .addVideo(videoUrl, widget.videoPath, captionController.text,
+            songController.text)
         .then((value) {
       if (value != false) {
-        Navigator.pop(context);
+        hideProgressDialog(context);
+        Navigator.pushAndRemoveUntil(context,
+            MaterialPageRoute(builder: (_) => HomeScreen()), (route) => false);
       } else {
+        hideProgressDialog(context);
         showSnackbar(context, Colors.red, "Video upload failed");
       }
     });
@@ -55,13 +60,13 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
     showProgressDialog(context);
     ref
         .read(videoControllerProvider.notifier)
-        .uploadVideoToStorage(widget.videoPath, (progress) {
-      if (progress is! Future<String>) {
-        progressValue.value = progress / 100.0;
+        .uploadVideoToStorage(widget.videoPath, (data) {
+      if (data is! String) {
+        progressValue.value = data / 100.0;
       } else {
-        print(progress);
-        Navigator.pop(context);
-        progressValue.value = 0;
+        print(data);
+        addVideo(data);
+        progressValue.value = 0.0;
         showSnackbar(context, Colors.green, "Upload Completed");
       }
     });
@@ -88,6 +93,10 @@ class _ConfirmScreenState extends ConsumerState<ConfirmScreen> {
                 }),
           );
         });
+  }
+
+  void hideProgressDialog(BuildContext context) {
+    Navigator.of(context).pop();
   }
 
   @override

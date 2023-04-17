@@ -70,8 +70,7 @@ class VideoController extends StateNotifier<List<Video>> {
         case TaskState.success:
           // Handle successful uploads on complete
 
-          final downloadUrl = reference.getDownloadURL();
-          func(downloadUrl);
+          reference.getDownloadURL().then((downloadUrl) => func(downloadUrl));
 
           // ...
           break;
@@ -100,10 +99,9 @@ class VideoController extends StateNotifier<List<Video>> {
     return thumbnailUrl;
   }
 
-  Future addVideo(String videoPath, String caption, String songName) async {
+  Future addVideo(String videoUrl, String videoPath, String caption,
+      String songName) async {
     try {
-      final videoUrl = await uploadVideoToStorage(videoPath, (data) {});
-
       final thumbnailUrl = await uploadThumbnailToStorage(videoPath);
 
       final username = await Prefs.getUsername(Constants.userNameKey);
@@ -122,12 +120,15 @@ class VideoController extends StateNotifier<List<Video>> {
           .collection("videos")
           .add(video.toFireStore())
           .then((documentSnapshot) {
+       
+        video.id = documentSnapshot.id;
+        addVideoLocally(video);
+
         firestoreDb
             .collection("videos")
             .doc(documentSnapshot.id)
             .update({"id": documentSnapshot.id}).then((value) {
-          Video video = Video.fromFireStore(
-              value as DocumentSnapshot<Map<String, dynamic>>);
+          ;
 
           addVideoLocally(video);
         });
