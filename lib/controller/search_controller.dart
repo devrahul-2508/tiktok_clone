@@ -18,7 +18,6 @@ class SearchController {
     for (final snapshot in snapshots.docs) {
       users.add(User.fromFirestore(snapshot));
     }
-    print(users.first.name);
 
     return users;
   }

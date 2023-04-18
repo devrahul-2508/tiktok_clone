@@ -3,6 +3,7 @@ import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter/src/widgets/placeholder.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tiktok_clone/controller/search_controller.dart';
+import 'package:tiktok_clone/views/profile_screen.dart';
 
 import '../model/user.dart';
 
@@ -52,27 +53,36 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                 child: ListView.builder(
                     itemCount: users.length,
                     itemBuilder: (context, index) {
-                      return ListTile(
-                        leading: CircleAvatar(
-                          backgroundImage: NetworkImage(
-                              "https://rollingstoneindia.com/wp-content/uploads/2020/02/weekend.jpg"),
-                        ),
-                        title: Text(
-                          users[index].name,
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 14),
-                        ),
-                        trailing: Container(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(10),
-                            color: Colors.black,
-                            border: Border.all(color: Colors.white, width: 1),
+                      return GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (_) =>
+                                      ProfileScreen(uid: users[index].uid)));
+                        },
+                        child: ListTile(
+                          leading: CircleAvatar(
+                            backgroundImage: NetworkImage(
+                                "https://rollingstoneindia.com/wp-content/uploads/2020/02/weekend.jpg"),
                           ),
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 20, vertical: 10),
-                          child: const Text(
-                            "Follow",
-                            style: TextStyle(color: Colors.white),
+                          title: Text(
+                            users[index].name,
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 14),
+                          ),
+                          trailing: Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(10),
+                              color: Colors.black,
+                              border: Border.all(color: Colors.white, width: 1),
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 20, vertical: 10),
+                            child: const Text(
+                              "Follow",
+                              style: TextStyle(color: Colors.white),
+                            ),
                           ),
                         ),
                       );

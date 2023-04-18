@@ -371,6 +371,11 @@ class VideoScreen extends ConsumerWidget {
             width: 20,
             decoration: BoxDecoration(
                 color: Colors.red, borderRadius: BorderRadius.circular(100)),
+            child: Icon(
+              Icons.add,
+              color: Colors.white,
+              size: 13,
+            ),
           ),
         )
       ]),

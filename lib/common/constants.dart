@@ -1,6 +1,8 @@
 import 'package:flutter/widgets.dart';
 import 'package:tiktok_clone/views/video_screen.dart';
 
+import '../helper/preferences.dart';
+import '../views/notification_screen.dart';
 import '../views/profile_screen.dart';
 import '../views/search_screen.dart';
 
@@ -15,7 +17,7 @@ class Constants {
 final pages = [
   VideoScreen(),
   SearchScreen(),
-  Text("Video Screen"),
-  Text("Inbox Screen"),
-  ProfileScreen(),
+  NotificationScreen(),
+  NotificationScreen(),
+  ProfileScreen(uid: Prefs.getUserId(Constants.userIdKey)),
 ];
