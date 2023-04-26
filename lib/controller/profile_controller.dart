@@ -47,7 +47,7 @@ class ProfileController {
     followers = followerDoc.docs.length;
     following = followingDoc.docs.length;
 
-    firestoreDb
+   await firestoreDb
         .collection("users")
         .doc(uid)
         .collection("followers")
@@ -72,5 +72,44 @@ class ProfileController {
     };
 
     return user;
+  }
+
+  followUser(String uid) async {
+    final authUserId = Prefs.getUserId(Constants.userIdKey);
+
+    var doc = await firestoreDb
+        .collection("users")
+        .doc(uid)
+        .collection("followers")
+        .doc(authUserId)
+        .get();
+
+    if (!doc.exists) {
+      await firestoreDb
+          .collection('users')
+          .doc(uid)
+          .collection('followers')
+          .doc(authUserId)
+          .set({});
+      await firestoreDb
+          .collection('users')
+          .doc(authUserId)
+          .collection('following')
+          .doc(uid)
+          .set({});
+    } else {
+       await firestoreDb
+          .collection('users')
+          .doc(uid)
+          .collection('followers')
+          .doc(authUserId)
+          .delete();
+      await firestoreDb
+          .collection('users')
+          .doc(authUserId)
+          .collection('following')
+          .doc(uid)
+          .delete();
+    }
   }
 }

@@ -20,7 +20,7 @@ class VideoScreen extends ConsumerWidget {
   Stream<QuerySnapshot>? comments;
 
   Widget _buildMessageComposer(
-      BuildContext context, WidgetRef ref, String videoId) {
+      BuildContext context, WidgetRef ref, Video video) {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 10),
       color: Colors.white,
@@ -45,7 +45,7 @@ class VideoScreen extends ConsumerWidget {
                 color: Colors.black,
               ),
               onPressed: () {
-                sendComment(videoId, ref);
+                sendComment(video, ref);
               },
             ),
           ],
@@ -54,16 +54,20 @@ class VideoScreen extends ConsumerWidget {
     );
   }
 
-  sendComment(String videoId, WidgetRef ref) {
+  sendComment(Video video, WidgetRef ref) {
     ref
         .read(commentControllerProvider)
-        .addComment(videoId, _commentController.text);
+        .addComment(video.id!, _commentController.text);
 
     _commentController.clear();
+
+    video.commentCount += 1;
+
+    ref.read(videoControllerProvider.notifier).updateVideoLocally(video);
   }
 
   Widget showCommentBottomSheet(
-      BuildContext context, WidgetRef ref, String videoId) {
+      BuildContext context, WidgetRef ref, Video video) {
     return Padding(
       padding: MediaQuery.of(context).viewInsets,
       child: DraggableScrollableSheet(
@@ -89,10 +93,35 @@ class VideoScreen extends ConsumerWidget {
                                 itemBuilder: (context, int index) {
                                   return (snapshot.data!.docs.isNotEmpty)
                                       ? ListTile(
-                                          leading: CircleAvatar(
-                                            backgroundColor: Colors.black,
-                                            backgroundImage: NetworkImage(
-                                                "https://rollingstoneindia.com/wp-content/uploads/2020/02/weekend.jpg"),
+                                          leading: Container(
+                                            height: 40,
+                                            width: 40,
+                                            decoration: BoxDecoration(
+                                                color: Colors.black,
+                                                borderRadius:
+                                                    BorderRadius.circular(100)),
+                                            child: (snapshot.data!.docs[index]
+                                                        ['profilePhoto'] ==
+                                                    null)
+                                                ? Center(
+                                                    child: Text(
+                                                      snapshot
+                                                          .data!
+                                                          .docs[index]
+                                                              ["username"]
+                                                          .substring(0, 1),
+                                                      style: TextStyle(
+                                                          color: Colors.white,
+                                                          fontWeight:
+                                                              FontWeight.bold),
+                                                    ),
+                                                  )
+                                                : ClipRRect(
+                                                    child: Image.network(
+                                                        snapshot.data!
+                                                                .docs[index]
+                                                            ['profilePhoto']),
+                                                  ),
                                           ),
                                           title: Text(
                                             snapshot.data!.docs[index]
@@ -133,7 +162,7 @@ class VideoScreen extends ConsumerWidget {
                                                     .read(
                                                         commentControllerProvider)
                                                     .likeComment(
-                                                        videoId,
+                                                        video.id!,
                                                         snapshot.data!
                                                             .docs[index]["id"]),
                                                 child: (snapshot.data!
@@ -174,7 +203,7 @@ class VideoScreen extends ConsumerWidget {
                             ));
                     },
                   ),
-                  _buildMessageComposer(context, ref, videoId)
+                  _buildMessageComposer(context, ref, video!)
                 ],
               ),
             );
@@ -198,7 +227,8 @@ class VideoScreen extends ConsumerWidget {
             return Stack(
               children: [
                 VideoPlayerItem(videoUrl: video.videoUrl),
-                buildBottomDetails(),
+                buildBottomDetails(
+                    video.username, video.caption, video.songName),
                 Positioned(
                   right: 0,
                   top: size.height * 0.3,
@@ -208,8 +238,7 @@ class VideoScreen extends ConsumerWidget {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
-                        buildProfile(
-                            "https://rollingstoneindia.com/wp-content/uploads/2020/02/weekend.jpg"),
+                        buildProfile(video.profilePhoto, video.username),
                         Column(
                           children: [
                             InkWell(
@@ -246,7 +275,7 @@ class VideoScreen extends ConsumerWidget {
                                     backgroundColor: Colors.transparent,
                                     builder: (context) =>
                                         showCommentBottomSheet(
-                                            context, ref, video.id!));
+                                            context, ref, video));
                               },
                               child: Icon(
                                 Icons.comment,
@@ -278,7 +307,7 @@ class VideoScreen extends ConsumerWidget {
                         ),
                         CircleAnimation(
                             child: buildMusicAlbum(
-                                "https://rollingstoneindia.com/wp-content/uploads/2020/02/weekend.jpg"))
+                                video.profilePhoto, video.username))
                       ],
                     ),
                   ),
@@ -289,7 +318,7 @@ class VideoScreen extends ConsumerWidget {
     );
   }
 
-  Widget buildBottomDetails() {
+  Widget buildBottomDetails(String username, String caption, String songname) {
     return Positioned(
       bottom: 20,
       child: Column(
@@ -304,7 +333,7 @@ class VideoScreen extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  "@craig_love",
+                  "@${username}",
                   style: TextStyle(
                       color: Colors.white, fontWeight: FontWeight.bold),
                 ),
@@ -312,7 +341,7 @@ class VideoScreen extends ConsumerWidget {
                   height: 8,
                 ),
                 Text(
-                  "The most satisfying job #idk #ffmr",
+                  caption,
                   style: TextStyle(color: Colors.white),
                 ),
               ],
@@ -328,7 +357,7 @@ class VideoScreen extends ConsumerWidget {
                 color: Colors.white,
               ),
               Text(
-                "Reminder * The Weekend",
+                songname,
                 style: TextStyle(color: Colors.white),
               ),
             ],
@@ -354,14 +383,27 @@ class VideoScreen extends ConsumerWidget {
     );
   }
 
-  buildProfile(String profilePhoto) {
+  buildProfile(String? profilePhoto, String username) {
     return SizedBox(
       height: 70,
       width: 60,
       child: Stack(children: [
-        CircleAvatar(
-          maxRadius: 30,
-          backgroundImage: NetworkImage(profilePhoto),
+        Container(
+          height: 60,
+          width: 60,
+          decoration: BoxDecoration(
+              color: Colors.black, borderRadius: BorderRadius.circular(100)),
+          child: (profilePhoto == null)
+              ? Center(
+                  child: Text(
+                    username.substring(0, 1),
+                    style: TextStyle(
+                        color: Colors.white, fontWeight: FontWeight.bold),
+                  ),
+                )
+              : ClipRRect(
+                  child: Image.network(profilePhoto),
+                ),
         ),
         Positioned(
           bottom: 0,
@@ -382,7 +424,7 @@ class VideoScreen extends ConsumerWidget {
     );
   }
 
-  buildMusicAlbum(String profilePhoto) {
+  buildMusicAlbum(String? profilePhoto, String username) {
     return SizedBox(
       width: 60,
       height: 60,
@@ -400,12 +442,25 @@ class VideoScreen extends ConsumerWidget {
                     ],
                   ),
                   borderRadius: BorderRadius.circular(25)),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(25),
-                child: Image(
-                  image: NetworkImage(profilePhoto),
-                  fit: BoxFit.cover,
-                ),
+              child: Container(
+                decoration: BoxDecoration(
+                    color: Colors.black,
+                    borderRadius: BorderRadius.circular(25)),
+                child: (profilePhoto == null)
+                    ? Center(
+                        child: Text(
+                          username.substring(0, 1),
+                          style: TextStyle(
+                              color: Colors.white, fontWeight: FontWeight.bold),
+                        ),
+                      )
+                    : ClipRRect(
+                        borderRadius: BorderRadius.circular(25),
+                        child: Image(
+                          image: NetworkImage(profilePhoto),
+                          fit: BoxFit.cover,
+                        ),
+                      ),
               ))
         ],
       ),

@@ -3,7 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter/src/widgets/placeholder.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:tiktok_clone/common/constants.dart';
 import 'package:tiktok_clone/controller/profile_controller.dart';
+
+import '../helper/preferences.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   String uid;
@@ -71,10 +74,29 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         SizedBox(
                           height: 10,
                         ),
-                        CircleAvatar(
-                          radius: 60,
-                          backgroundImage: NetworkImage(
-                              "https://rollingstoneindia.com/wp-content/uploads/2020/02/weekend.jpg"),
+                        Container(
+                          width: 120,
+                          height: 120,
+                          decoration: BoxDecoration(
+                              color: Colors.black,
+                              borderRadius: BorderRadius.circular(100)),
+                          child: (user["profilePhoto"] == null)
+                              ? Center(
+                                  child: Text(
+                                    user["name"].substring(0, 1),
+                                    style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 40,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                )
+                              : ClipRRect(
+                                  borderRadius: BorderRadius.circular(25),
+                                  child: Image(
+                                    image: NetworkImage(user["profilePhoto"]),
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
                         ),
                         SizedBox(
                           height: 10,
@@ -146,18 +168,49 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         SizedBox(
                           height: 15,
                         ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 30, vertical: 10),
-                          decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(5),
-                              border: Border.all(color: Colors.grey, width: 1)),
-                          child: Text(
-                            "Edit Profile",
-                            style: TextStyle(color: Colors.black),
-                          ),
-                        ),
+                        (widget.uid == Prefs.getUserId(Constants.userIdKey))
+                            ? Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 30, vertical: 10),
+                                decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(5),
+                                    border: Border.all(
+                                        color: Colors.grey, width: 1)),
+                                child: Text(
+                                  "Edit Profile",
+                                  style: TextStyle(color: Colors.black),
+                                ),
+                              )
+                            : GestureDetector(
+                                onTap: () {
+                                  ref
+                                      .read(profileControllerProvider)
+                                      .followUser(widget.uid);
+
+                                  setState(() {});
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 30, vertical: 10),
+                                  decoration: BoxDecoration(
+                                      color: (user["isFollowing"] == false)
+                                          ? Colors.white
+                                          : Colors.black,
+                                      borderRadius: BorderRadius.circular(5),
+                                      border: Border.all(
+                                          color: Colors.grey, width: 1)),
+                                  child: (user["isFollowing"] == false)
+                                      ? Text(
+                                          "Follow",
+                                          style: TextStyle(color: Colors.black),
+                                        )
+                                      : Text(
+                                          "Following",
+                                          style: TextStyle(color: Colors.white),
+                                        ),
+                                ),
+                              ),
                         SizedBox(
                           height: 50,
                           child: AppBar(

@@ -36,8 +36,9 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                     borderRadius: BorderRadius.circular(10)),
                 child: TextField(
                   onChanged: (value) {
-                    searchUsers(value, ref);
-                    setState(() {});
+                    setState(() {
+                      searchUsers(value, ref);
+                    });
                   },
                   decoration: InputDecoration(
                       suffixIcon: Icon(
@@ -53,6 +54,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                 child: ListView.builder(
                     itemCount: users.length,
                     itemBuilder: (context, index) {
+                      final user = users[index];
                       return GestureDetector(
                         onTap: () {
                           Navigator.push(
@@ -62,12 +64,31 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                                       ProfileScreen(uid: users[index].uid)));
                         },
                         child: ListTile(
-                          leading: CircleAvatar(
-                            backgroundImage: NetworkImage(
-                                "https://rollingstoneindia.com/wp-content/uploads/2020/02/weekend.jpg"),
+                          leading: Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                                color: Colors.black,
+                                borderRadius: BorderRadius.circular(100)),
+                            child: (user.profilePhoto == null)
+                                ? Center(
+                                    child: Text(
+                                      user.name.substring(0, 1),
+                                      style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                  )
+                                : ClipRRect(
+                                    borderRadius: BorderRadius.circular(25),
+                                    child: Image(
+                                      image: NetworkImage(user.profilePhoto!),
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
                           ),
                           title: Text(
-                            users[index].name,
+                            user.name,
                             style: TextStyle(
                                 fontWeight: FontWeight.bold, fontSize: 14),
                           ),
